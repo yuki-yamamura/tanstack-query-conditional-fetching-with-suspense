@@ -36,17 +36,17 @@ const TodoList = () => {
       </label>
       {isChecked && (
         <Suspense fallback={<div>Loading...</div>}>
-          <Component />
+          <Component shouldShowTodos={isChecked} />
         </Suspense>
       )}
     </div>
   );
 };
 
-const Component = () => {
+const Component = ({ shouldShowTodos }: { shouldShowTodos: boolean }) => {
   const { data: todos } = useSuspenseQuery({
     queryKey: ["todos"],
-    queryFn: getTodos,
+    queryFn: () => (shouldShowTodos ? getTodos() : null),
   });
 
   return (
