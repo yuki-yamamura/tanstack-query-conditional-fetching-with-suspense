@@ -1,7 +1,7 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 type Todo = {
   id: number;
@@ -17,8 +17,13 @@ const getTodos = async () => {
   return todos;
 };
 
-const TodoList = () => {
+export const TodoList = () => {
   const [isChecked, setIsChecked] = useState(false);
+  const { data: todos, isLoading } = useQuery({
+    queryKey: ["todos"],
+    queryFn: getTodos,
+    enabled: isChecked,
+  });
 
   const handleCheckboxClick = () => {
     setIsChecked((prev) => !prev);
@@ -34,31 +39,14 @@ const TodoList = () => {
           onClick={handleCheckboxClick}
         />
       </label>
-      {isChecked && (
-        <Suspense fallback={<div>Loading...</div>}>
-          <Component shouldShowTodos={isChecked} />
-        </Suspense>
+      {todos && todos.length > 0 && (
+        <ul>
+          {todos.map((todo) => (
+            <li key={todo.id}>{todo.title}</li>
+          ))}
+        </ul>
       )}
+      {isLoading && <div>Loading...</div>}
     </div>
   );
 };
-
-const Component = ({ shouldShowTodos }: { shouldShowTodos: boolean }) => {
-  const { data: todos } = useSuspenseQuery({
-    queryKey: ["todos"],
-    queryFn: () => (shouldShowTodos ? getTodos() : null),
-  });
-
-  return (
-    todos &&
-    todos.length > 0 && (
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.title}</li>
-        ))}
-      </ul>
-    )
-  );
-};
-
-export { TodoList };
